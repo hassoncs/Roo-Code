@@ -88,6 +88,6 @@
   },
   "input": {
     "task_prompt": "Wat moet Roo doen?",
-    "task_placeholder": "Typ hier je taak"
+    "task_placeholder": "Typ hier je taak ..."
   }
 }
