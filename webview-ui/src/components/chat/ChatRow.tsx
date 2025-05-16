@@ -1084,12 +1084,9 @@ export const ChatRowContent = ({
 							/>
 						</>
 					)
-				case "auto_approval_max_req_reached": {
+				case "auto_approval_max_req_reached":
+				case "auto_approval_max_cost_reached":
 					return <AutoApprovedRequestLimitWarning message={message} />
-				}
-				case "auto_approval_max_req_reached": {
-					return <AutoApprovedRequestLimitWarning message={message} />
-				}
 				default:
 					return null
 			}
