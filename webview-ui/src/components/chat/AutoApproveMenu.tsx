@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Trans } from "react-i18next"
 import { VSCodeCheckbox, VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
@@ -13,6 +13,7 @@ interface AutoApproveMenuProps {
 
 const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 	const [isExpanded, setIsExpanded] = useState(false)
+	const [costLimitInputValue, setCostLimitInputValue] = useState<string>("")
 
 	const {
 		autoApprovalEnabled,
@@ -39,7 +40,32 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 		setAllowedMaxCostLimit,
 	} = useExtensionState()
 
+	// Initialize the input value when the component mounts or when allowedMaxCostLimit changes
+	useEffect(() => {
+		const newLimit = allowedMaxCostLimit ?? Infinity
+		if (newLimit === Infinity) {
+			setCostLimitInputValue("Unlimited")
+		} else {
+			setCostLimitInputValue(`$${newLimit.toString()}`)
+		}
+	}, [allowedMaxCostLimit])
+
 	const { t } = useAppTranslation()
+
+	// Callback to update the actual cost limit value
+	const updateCostLimit = useCallback(() => {
+		const value = parseFloat(costLimitInputValue.replace(/[^0-9.]/g, ""))
+
+		// If we got a valid number, use it; otherwise set to undefined
+		if (!isNaN(value) && value > 0) {
+			setAllowedMaxCostLimit(value)
+			vscode.postMessage({ type: "allowedMaxCostLimit", value })
+		} else {
+			setAllowedMaxCostLimit(undefined)
+			vscode.postMessage({ type: "allowedMaxCostLimit", value: undefined })
+			setCostLimitInputValue("Unlimited")
+		}
+	}, [costLimitInputValue, setAllowedMaxCostLimit])
 
 	const onAutoApproveToggle = useCallback(
 		(key: AutoApproveSetting, value: boolean) => {
@@ -255,25 +281,37 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 								}}>
 								<span style={{ flexShrink: 1, minWidth: 0 }}>Max Cost:</span>
 								<VSCodeTextField
-									value={
-										(allowedMaxCostLimit ?? Infinity) === Infinity
-											? "Unlimited"
-											: allowedMaxCostLimit?.toString()
-									}
+									value={costLimitInputValue}
 									onInput={(e) => {
 										const input = e.target as HTMLInputElement
 										// Allow numeric characters and decimal point
-										input.value = input.value.replace(/[^0-9.]/g, "")
+										const sanitizedValue = input.value.replace(/[^0-9.]/g, "")
+
 										// Ensure only one decimal point
-										const decimalCount = (input.value.match(/\./g) || []).length
+										const decimalCount = (sanitizedValue.match(/\./g) || []).length
+										let finalValue = sanitizedValue
 										if (decimalCount > 1) {
-											input.value = input.value.substring(0, input.value.lastIndexOf("."))
+											finalValue =
+												sanitizedValue.substring(0, sanitizedValue.lastIndexOf(".")) +
+												sanitizedValue.substring(sanitizedValue.lastIndexOf("."))
 										}
-										const value = parseFloat(input.value)
-										const parsedValue = !isNaN(value) && value > 0 ? value : undefined
-										setAllowedMaxCostLimit(parsedValue)
-										vscode.postMessage({ type: "allowedMaxCostLimit", value: parsedValue })
+
+										// Special case for "Unlimited"
+										if (
+											input.value.toLowerCase() === "u" ||
+											input.value.toLowerCase().startsWith("un")
+										) {
+											setCostLimitInputValue("Unlimited")
+										} else {
+											setCostLimitInputValue(finalValue)
+										}
 									}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											updateCostLimit()
+										}
+									}}
+									onBlur={updateCostLimit}
 									style={{ flex: 1 }}
 								/>
 							</div>
