@@ -102,6 +102,11 @@
 			"title": "已達到自動批准請求上限",
 			"description": "Roo 已達到 {{count}} 個自動批准的 API 請求上限。您想重設計數並繼續執行任務嗎？",
 			"button": "重設並繼續"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "已達到自動批准費用上限",
+			"description": "Roo 已達到自動批准的費用上限 ${{cost}}。您想重設費用限制並繼續執行任務嗎？",
+			"button": "重設並繼續"
 		}
 	}
 }

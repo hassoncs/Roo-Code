@@ -102,6 +102,11 @@
 			"title": "Limit für automatisch genehmigte Anfragen erreicht",
 			"description": "Roo hat das Limit von {{count}} automatisch genehmigten API-Anfragen erreicht. Möchten Sie den Zähler zurücksetzen und mit der Aufgabe fortfahren?",
 			"button": "Zurücksetzen und Fortfahren"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Limit für automatisch genehmigte Kosten erreicht",
+			"description": "Roo hat das automatisch genehmigte Kostenlimit von ${{cost}} erreicht. Möchtest du das Kostenlimit zurücksetzen und mit der Aufgabe fortfahren?",
+			"button": "Zurücksetzen und Fortfahren"
 		}
 	}
 }

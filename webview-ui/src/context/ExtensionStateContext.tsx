@@ -40,6 +40,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setShowAnnouncement: (value: boolean) => void
 	setAllowedCommands: (value: string[]) => void
 	setAllowedMaxRequests: (value: number | undefined) => void
+	allowedMaxCostLimit?: number | undefined
+	setAllowedMaxCostLimit: (value: number | undefined) => void
 	setSoundEnabled: (value: boolean) => void
 	setSoundVolume: (value: number) => void
 	terminalShellIntegrationTimeout?: number
@@ -135,6 +137,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		shouldShowAnnouncement: false,
 		allowedCommands: [],
 		allowedMaxRequests: Infinity,
+		allowedMaxCostLimit: Infinity,
 		soundEnabled: false,
 		soundVolume: 0.5,
 		ttsEnabled: false,
@@ -291,6 +294,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setShowAnnouncement: (value) => setState((prevState) => ({ ...prevState, shouldShowAnnouncement: value })),
 		setAllowedCommands: (value) => setState((prevState) => ({ ...prevState, allowedCommands: value })),
 		setAllowedMaxRequests: (value) => setState((prevState) => ({ ...prevState, allowedMaxRequests: value })),
+		setAllowedMaxCostLimit: (value: number | undefined) =>
+			setState((prevState) => ({ ...prevState, allowedMaxCostLimit: value })),
 		setSoundEnabled: (value) => setState((prevState) => ({ ...prevState, soundEnabled: value })),
 		setSoundVolume: (value) => setState((prevState) => ({ ...prevState, soundVolume: value })),
 		setTtsEnabled: (value) => setState((prevState) => ({ ...prevState, ttsEnabled: value })),

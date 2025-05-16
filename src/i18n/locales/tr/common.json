@@ -102,6 +102,11 @@
 			"title": "Otomatik Onaylı İstek Sınırına Ulaşıldı",
 			"description": "Roo, {{count}} otomatik onaylı API isteği sınırına ulaştı. Sayacı sıfırlayıp göreve devam etmek ister misiniz?",
 			"button": "Sıfırla ve Devam Et"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Otomatik Onaylı Maliyet Sınırına Ulaşıldı",
+			"description": "Roo, ${{cost}} otomatik onaylı maliyet sınırına ulaştı. Maliyet sınırını sıfırlayıp göreve devam etmek ister misiniz?",
+			"button": "Sıfırla ve Devam Et"
 		}
 	}
 }

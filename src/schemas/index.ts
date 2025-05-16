@@ -678,6 +678,7 @@ export const globalSettingsSchema = z.object({
 	alwaysAllowExecute: z.boolean().optional(),
 	allowedCommands: z.array(z.string()).optional(),
 	allowedMaxRequests: z.number().optional(),
+	allowedMaxCostLimit: z.number().optional(),
 
 	browserToolEnabled: z.boolean().optional(),
 	browserViewportSize: z.string().optional(),
@@ -758,6 +759,7 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 	alwaysAllowExecute: undefined,
 	allowedCommands: undefined,
 	allowedMaxRequests: undefined,
+	allowedMaxCostLimit: undefined,
 
 	browserToolEnabled: undefined,
 	browserViewportSize: undefined,
@@ -902,6 +904,7 @@ export const clineAsks = [
 	"browser_action_launch",
 	"use_mcp_server",
 	"auto_approval_max_req_reached",
+	"auto_approval_max_cost_reached",
 ] as const
 
 export const clineAskSchema = z.enum(clineAsks)

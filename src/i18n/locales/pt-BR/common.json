@@ -102,6 +102,11 @@
 			"title": "Limite de Solicitações Aprovadas Automaticamente Atingido",
 			"description": "O Roo atingiu o limite de {{count}} solicitações de API aprovadas automaticamente. Gostaria de zerar a contagem e prosseguir com a tarefa?",
 			"button": "Zerar e Continuar"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Limite de Custo Aprovado Automaticamente Atingido",
+			"description": "O Roo atingiu o limite de custo aprovado automaticamente de ${{cost}}. Gostaria de zerar o limite de custo e prosseguir com a tarefa?",
+			"button": "Zerar e Continuar"
 		}
 	}
 }

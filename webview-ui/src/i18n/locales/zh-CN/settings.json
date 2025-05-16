@@ -81,7 +81,8 @@
 			"addButton": "添加"
 		},
 		"apiRequestLimit": {
-			"description": "在请求批准继续任务前，自动执行这么多 API 请求。"
+			"title": "API 请求和费用限制",
+			"description": "在请求批准继续前自动执行请求直到达到这些限制。费用限制有助于控制 API 使用开支。"
 		}
 	},
 	"providers": {

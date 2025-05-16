@@ -81,7 +81,8 @@
 			"addButton": "Thêm"
 		},
 		"apiRequestLimit": {
-			"description": "Tự động thực hiện số lượng API request này trước khi yêu cầu phê duyệt để tiếp tục với nhiệm vụ."
+			"title": "Giới hạn Yêu cầu và Chi phí API",
+			"description": "Tự động thực hiện các yêu cầu đến các giới hạn này trước khi yêu cầu phê duyệt để tiếp tục. Giới hạn chi phí giúp kiểm soát chi phí sử dụng API."
 		}
 	},
 	"providers": {

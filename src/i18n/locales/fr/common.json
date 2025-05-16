@@ -102,6 +102,11 @@
 			"title": "Limite de Demandes Approuvées Automatiquement Atteinte",
 			"description": "Roo a atteint la limite de {{count}} demandes d'API approuvées automatiquement. Souhaitez-vous réinitialiser le compteur et poursuivre la tâche ?",
 			"button": "Réinitialiser et Continuer"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Limite de Coût Approuvé Automatiquement Atteinte",
+			"description": "Roo a atteint la limite de coût approuvée automatiquement de ${{cost}}. Souhaitez-vous réinitialiser la limite de coût et poursuivre la tâche ?",
+			"button": "Réinitialiser et Continuer"
 		}
 	}
 }

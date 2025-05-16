@@ -26,6 +26,7 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 		alwaysAllowSubtasks,
 		alwaysApproveResubmit,
 		allowedMaxRequests,
+		allowedMaxCostLimit,
 		setAlwaysAllowReadOnly,
 		setAlwaysAllowWrite,
 		setAlwaysAllowExecute,
@@ -35,6 +36,7 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 		setAlwaysAllowSubtasks,
 		setAlwaysApproveResubmit,
 		setAllowedMaxRequests,
+		setAllowedMaxCostLimit,
 	} = useExtensionState()
 
 	const { t } = useAppTranslation()
@@ -199,42 +201,93 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 						/>
 					</div>
 
-					{/* Auto-approve API request count limit input row inspired by Cline */}
+					{/* Auto-approve limits row */}
 					<div
 						style={{
 							display: "flex",
-							alignItems: "center",
+							flexDirection: "column",
 							gap: "8px",
 							marginTop: "10px",
 							marginBottom: "8px",
-							color: "var(--vscode-descriptionForeground)",
 						}}>
-						<span style={{ flexShrink: 1, minWidth: 0 }}>Max Requests:</span>
-						<VSCodeTextField
-							value={
-								(allowedMaxRequests ?? Infinity) === Infinity
-									? "Unlimited"
-									: allowedMaxRequests?.toString()
-							}
-							onInput={(e) => {
-								const input = e.target as HTMLInputElement
-								// Remove any non-numeric characters
-								input.value = input.value.replace(/[^0-9]/g, "")
-								const value = parseInt(input.value)
-								const parsedValue = !isNaN(value) && value > 0 ? value : undefined
-								setAllowedMaxRequests(parsedValue)
-								vscode.postMessage({ type: "allowedMaxRequests", value: parsedValue })
-							}}
-							style={{ flex: 1 }}
-						/>
-					</div>
-					<div
-						style={{
-							color: "var(--vscode-descriptionForeground)",
-							fontSize: "12px",
-							marginBottom: "10px",
-						}}>
-						<Trans i18nKey="settings:autoApprove.apiRequestLimit.description" />
+						{/* Input fields row */}
+						<div
+							style={{
+								display: "flex",
+								gap: "16px",
+								color: "var(--vscode-descriptionForeground)",
+							}}>
+							{/* Max Requests input */}
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "8px",
+									flex: 1,
+								}}>
+								<span style={{ flexShrink: 1, minWidth: 0 }}>Max Requests:</span>
+								<VSCodeTextField
+									value={
+										(allowedMaxRequests ?? Infinity) === Infinity
+											? "Unlimited"
+											: allowedMaxRequests?.toString()
+									}
+									onInput={(e) => {
+										const input = e.target as HTMLInputElement
+										// Remove any non-numeric characters
+										input.value = input.value.replace(/[^0-9]/g, "")
+										const value = parseInt(input.value)
+										const parsedValue = !isNaN(value) && value > 0 ? value : undefined
+										setAllowedMaxRequests(parsedValue)
+										vscode.postMessage({ type: "allowedMaxRequests", value: parsedValue })
+									}}
+									style={{ flex: 1 }}
+								/>
+							</div>
+
+							{/* Max Cost input */}
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "8px",
+									flex: 1,
+								}}>
+								<span style={{ flexShrink: 1, minWidth: 0 }}>Max Cost:</span>
+								<VSCodeTextField
+									value={
+										(allowedMaxCostLimit ?? Infinity) === Infinity
+											? "Unlimited"
+											: allowedMaxCostLimit?.toString()
+									}
+									onInput={(e) => {
+										const input = e.target as HTMLInputElement
+										// Allow numeric characters and decimal point
+										input.value = input.value.replace(/[^0-9.]/g, "")
+										// Ensure only one decimal point
+										const decimalCount = (input.value.match(/\./g) || []).length
+										if (decimalCount > 1) {
+											input.value = input.value.substring(0, input.value.lastIndexOf("."))
+										}
+										const value = parseFloat(input.value)
+										const parsedValue = !isNaN(value) && value > 0 ? value : undefined
+										setAllowedMaxCostLimit(parsedValue)
+										vscode.postMessage({ type: "allowedMaxCostLimit", value: parsedValue })
+									}}
+									style={{ flex: 1 }}
+								/>
+							</div>
+						</div>
+
+						{/* Description */}
+						<div
+							style={{
+								color: "var(--vscode-descriptionForeground)",
+								fontSize: "12px",
+								marginBottom: "10px",
+							}}>
+							<Trans i18nKey="settings:autoApprove.apiRequestLimit.description" />
+						</div>
 					</div>
 
 					<AutoApproveToggle {...toggles} onToggle={onAutoApproveToggle} />

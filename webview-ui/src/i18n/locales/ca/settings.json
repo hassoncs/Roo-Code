@@ -81,7 +81,8 @@
 			"addButton": "Afegir"
 		},
 		"apiRequestLimit": {
-			"description": "Fes aquesta quantitat de sol·licituds API automàticament abans de demanar aprovació per continuar amb la tasca."
+			"title": "Límits de Sol·licituds i Costos d'API",
+			"description": "Fes sol·licituds automàticament fins a aquests límits abans de demanar aprovació per continuar. Els límits de cost ajuden a controlar les despeses d'ús de l'API."
 		}
 	},
 	"providers": {

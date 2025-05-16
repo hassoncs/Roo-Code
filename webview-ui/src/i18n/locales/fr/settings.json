@@ -81,7 +81,8 @@
 			"addButton": "Ajouter"
 		},
 		"apiRequestLimit": {
-			"description": "Effectuer automatiquement ce nombre de requêtes API avant de demander l'approbation pour continuer la tâche."
+			"title": "Limites de Requêtes et de Coûts API",
+			"description": "Effectuer automatiquement des requêtes jusqu'à ces limites avant de demander l'approbation pour continuer. Les limites de coût aident à contrôler les dépenses d'utilisation de l'API."
 		}
 	},
 	"providers": {

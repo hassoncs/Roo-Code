@@ -81,7 +81,8 @@
 			"addButton": "Hinzufügen"
 		},
 		"apiRequestLimit": {
-			"description": "Führe automatisch diese Anzahl an API-Anfragen aus, bevor du um Genehmigung zur Fortsetzung der Aufgabe bitten musst."
+			"title": "API-Anfrage- & Kostenlimits",
+			"description": "Führe automatisch Anfragen bis zu diesen Limits aus, bevor du um Genehmigung zur Fortsetzung bitten musst. Kostenlimits helfen, die API-Nutzungskosten zu kontrollieren."
 		}
 	},
 	"providers": {

@@ -136,6 +136,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	api: ApiHandler
 	private lastApiRequestTime?: number
 	private consecutiveAutoApprovedRequestsCount: number = 0
+	private consecutiveAutoApprovedCostSum: number = 0
 
 	toolRepetitionDetector: ToolRepetitionDetector
 	rooIgnoreController?: RooIgnoreController
@@ -147,6 +148,61 @@ export class Task extends EventEmitter<ClineEvents> {
 	browserSession: BrowserSession
 
 	// Editing
+
+	/**
+	 * Checks if we've reached the maximum number of auto-approved requests
+	 */
+	private async checkAutoApprovalRequestLimit() {
+		const { allowedMaxRequests } = (await this.providerRef.deref()?.getState()) ?? {}
+		const maxRequests = allowedMaxRequests || Infinity
+
+		// Increment the counter for each new API request
+		this.consecutiveAutoApprovedRequestsCount++
+
+		if (this.consecutiveAutoApprovedRequestsCount > maxRequests) {
+			const { response } = await this.ask(
+				"auto_approval_max_req_reached",
+				JSON.stringify({
+					title: t("common:ask.autoApprovedRequestLimitReached.title"),
+					description: t("common:ask.autoApprovedRequestLimitReached.description", { count: maxRequests }),
+					button: t("common:ask.autoApprovedRequestLimitReached.button"),
+				}),
+			)
+			// If we get past the promise, it means the user approved and did not start a new task
+			if (response === "yesButtonClicked") {
+				this.consecutiveAutoApprovedRequestsCount = 0
+			}
+		}
+	}
+
+	/**
+	 * Updates the cost sum and checks if we've reached the maximum cost limit
+	 */
+	private async updateAndCheckCostLimit(requestCost: number) {
+		// Add the cost of the completed request to the sum
+		this.consecutiveAutoApprovedCostSum += requestCost
+
+		const { allowedMaxCostLimit } = (await this.providerRef.deref()?.getState()) ?? {}
+		const maxCostLimit = allowedMaxCostLimit || Infinity
+
+		if (this.consecutiveAutoApprovedCostSum > maxCostLimit) {
+			const { response } = await this.ask(
+				"auto_approval_max_cost_reached",
+				JSON.stringify({
+					title: t("common:ask.autoApprovedCostLimitReached.title"),
+					description: t("common:ask.autoApprovedCostLimitReached.description", {
+						cost: this.consecutiveAutoApprovedCostSum.toFixed(2),
+					}),
+					button: t("common:ask.autoApprovedCostLimitReached.button"),
+				}),
+			)
+
+			// If we get past the promise, it means the user approved and did not start a new task
+			if (response === "yesButtonClicked") {
+				this.consecutiveAutoApprovedCostSum = 0
+			}
+		}
+	}
 	diffViewProvider: DiffViewProvider
 	diffStrategy?: DiffStrategy
 	diffEnabled: boolean = false
@@ -1126,6 +1182,13 @@ export class Task extends EventEmitter<ClineEvents> {
 				// Update `api_req_started` to have cancelled and cost, so that
 				// we can display the cost of the partial stream.
 				updateApiReqMsg(cancelReason, streamingFailedMessage)
+
+				// Get the cost from the updated message and check if we've reached the cost limit
+				const updatedMessage = JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}")
+				if (updatedMessage.cost) {
+					await this.updateAndCheckCostLimit(updatedMessage.cost)
+				}
+
 				await this.saveClineMessages()
 
 				// Signals to provider that it can retrieve the saved messages
@@ -1283,6 +1346,13 @@ export class Task extends EventEmitter<ClineEvents> {
 			}
 
 			updateApiReqMsg()
+
+			// Get the cost from the updated message and check if we've reached the cost limit
+			const updatedMessage = JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}")
+			if (updatedMessage.cost) {
+				await this.updateAndCheckCostLimit(updatedMessage.cost)
+			}
+
 			await this.saveClineMessages()
 			await this.providerRef.deref()?.postStateToWebview()
 
@@ -1497,26 +1567,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		)
 
 		// Check if we've reached the maximum number of auto-approved requests
-		const { allowedMaxRequests } = (await this.providerRef.deref()?.getState()) ?? {}
-		const maxRequests = allowedMaxRequests || Infinity
-
-		// Increment the counter for each new API request
-		this.consecutiveAutoApprovedRequestsCount++
-
-		if (this.consecutiveAutoApprovedRequestsCount > maxRequests) {
-			const { response } = await this.ask(
-				"auto_approval_max_req_reached",
-				JSON.stringify({
-					title: t("common:ask.autoApprovedRequestLimitReached.title"),
-					description: t("common:ask.autoApprovedRequestLimitReached.description", { count: maxRequests }),
-					button: t("common:ask.autoApprovedRequestLimitReached.button"),
-				}),
-			)
-			// If we get past the promise, it means the user approved and did not start a new task
-			if (response === "yesButtonClicked") {
-				this.consecutiveAutoApprovedRequestsCount = 0
-			}
-		}
+		await this.checkAutoApprovalRequestLimit()
 
 		const stream = this.api.createMessage(systemPrompt, cleanConversationHistory)
 		const iterator = stream[Symbol.asyncIterator]()

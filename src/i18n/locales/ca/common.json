@@ -102,6 +102,11 @@
 			"title": "Límit de Sol·licituds Aprovades Automàticament Assolit",
 			"description": "Roo ha assolit el límit de {{count}} sol·licituds d'API aprovades automàticament. Vols restablir el comptador i continuar amb la tasca?",
 			"button": "Restablir i Continuar"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Límit de Cost Aprovat Automàticament Assolit",
+			"description": "Roo ha assolit el límit de cost aprovat automàticament de ${{cost}}. Vols restablir el límit de cost i continuar amb la tasca?",
+			"button": "Restablir i Continuar"
 		}
 	}
 }

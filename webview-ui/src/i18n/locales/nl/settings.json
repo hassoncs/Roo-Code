@@ -81,7 +81,8 @@
 			"addButton": "Toevoegen"
 		},
 		"apiRequestLimit": {
-			"description": "Voer automatisch dit aantal API-verzoeken uit voordat je om goedkeuring vraagt om door te gaan met de taak."
+			"title": "API-verzoek- en Kostenlimieten",
+			"description": "Voer automatisch verzoeken uit tot deze limieten voordat je om goedkeuring vraagt om door te gaan. Kostenlimieten helpen de uitgaven voor API-gebruik te beheersen."
 		}
 	},
 	"providers": {

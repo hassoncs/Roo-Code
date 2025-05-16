@@ -165,6 +165,10 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			await updateGlobalState("allowedMaxRequests", message.value)
 			await provider.postStateToWebview()
 			break
+		case "allowedMaxCostLimit":
+			await updateGlobalState("allowedMaxCostLimit", message.value)
+			await provider.postStateToWebview()
+			break
 		case "alwaysAllowSubtasks":
 			await updateGlobalState("alwaysAllowSubtasks", message.bool)
 			await provider.postStateToWebview()

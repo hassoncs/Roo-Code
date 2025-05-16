@@ -81,7 +81,8 @@
 			"addButton": "追加"
 		},
 		"apiRequestLimit": {
-			"description": "タスクを続行するための承認を求める前に、この回数のAPIリクエストを自動的に実行します。"
+			"title": "APIリクエストと費用の制限",
+			"description": "承認を求める前に、これらの制限までリクエストを自動的に実行します。費用制限はAPI使用コストの管理に役立ちます。"
 		}
 	},
 	"providers": {

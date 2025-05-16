@@ -102,6 +102,11 @@
 			"title": "Osiągnięto Limit Automatycznie Zatwierdzonych Żądań",
 			"description": "Roo osiągnął limit {{count}} automatycznie zatwierdzonych żądań API. Czy chcesz zresetować licznik i kontynuować zadanie?",
 			"button": "Zresetuj i Kontynuuj"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Osiągnięto Limit Automatycznie Zatwierdzonych Kosztów",
+			"description": "Roo osiągnął automatycznie zatwierdzony limit kosztów w wysokości ${{cost}}. Czy chcesz zresetować limit kosztów i kontynuować zadanie?",
+			"button": "Zresetuj i Kontynuuj"
 		}
 	}
 }

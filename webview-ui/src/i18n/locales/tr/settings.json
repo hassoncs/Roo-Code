@@ -81,7 +81,8 @@
 			"addButton": "Ekle"
 		},
 		"apiRequestLimit": {
-			"description": "Göreve devam etmek için onay istemeden önce bu sayıda API isteği otomatik olarak yap."
+			"title": "API İstek ve Maliyet Limitleri",
+			"description": "Devam etmek için onay istemeden önce bu limitlere kadar otomatik olarak istekler yap. Maliyet limitleri, API kullanım giderlerini kontrol etmeye yardımcı olur."
 		}
 	},
 	"providers": {

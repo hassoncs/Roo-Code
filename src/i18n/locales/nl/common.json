@@ -96,6 +96,11 @@
 			"button": "Reset en Doorgaan",
 			"description": "Roo heeft de automatisch goedgekeurde limiet van {{count}} API-aanvragen bereikt. Wilt u het aantal resetten en doorgaan met de taak?",
 			"title": "Limiet voor Automatisch Goedgekeurde Aanvragen Bereikt"
+		},
+		"autoApprovedCostLimitReached": {
+			"button": "Reset en Doorgaan",
+			"description": "Roo heeft de automatisch goedgekeurde kostenlimiet van ${{cost}} bereikt. Wilt u de kostenlimiet resetten en doorgaan met de taak?",
+			"title": "Limiet voor Automatisch Goedgekeurde Kosten Bereikt"
 		}
 	}
 }

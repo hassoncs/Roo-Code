@@ -81,7 +81,8 @@
 			"addButton": "Adicionar"
 		},
 		"apiRequestLimit": {
-			"description": "Fazer automaticamente este número de requisições à API antes de pedir aprovação para continuar com a tarefa."
+			"title": "Limites de Requisições e Custos da API",
+			"description": "Fazer automaticamente requisições até estes limites antes de pedir aprovação para continuar. Limites de custo ajudam a controlar as despesas de uso da API."
 		}
 	},
 	"providers": {

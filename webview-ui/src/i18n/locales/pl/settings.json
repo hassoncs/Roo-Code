@@ -81,7 +81,8 @@
 			"addButton": "Dodaj"
 		},
 		"apiRequestLimit": {
-			"description": "Automatycznie wykonaj tyle zapytań API, zanim poprosisz o zgodę na kontynuowanie zadania."
+			"title": "Limity Zapytań i Kosztów API",
+			"description": "Automatycznie wykonuj zapytania do tych limitów, zanim poprosisz o zgodę na kontynuowanie. Limity kosztów pomagają kontrolować wydatki związane z korzystaniem z API."
 		}
 	},
 	"providers": {

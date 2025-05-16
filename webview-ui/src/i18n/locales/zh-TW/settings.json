@@ -81,7 +81,8 @@
 			"addButton": "新增"
 		},
 		"apiRequestLimit": {
-			"description": "在要求核准繼續工作之前，自動發送這麼多 API 請求。"
+			"title": "API 請求與費用限制",
+			"description": "在要求核准繼續之前，自動發送請求直到達到這些限制。費用限制有助於控制 API 使用支出。"
 		}
 	},
 	"providers": {

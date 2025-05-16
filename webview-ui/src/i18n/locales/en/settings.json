@@ -81,7 +81,8 @@
 			"addButton": "Add"
 		},
 		"apiRequestLimit": {
-			"description": "Automatically make this many API requests before asking for approval to continue with the task."
+			"title": "API Request & Cost Limits",
+			"description": "Automatically make requests up to these limits before asking for approval to continue. Cost limits help control API usage expenses."
 		}
 	},
 	"providers": {
