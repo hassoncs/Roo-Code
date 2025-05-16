@@ -1636,7 +1636,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 				// Delegate generator output from the recursive call with
 				// incremented retry count.
-				yield* this.attemptApiRequest(previousApiReqIndex, retryAttempt + 1)
+				yield * this.attemptApiRequest(previousApiReqIndex, retryAttempt + 1)
 
 				return
 			} else {
@@ -1654,7 +1654,7 @@ export class Task extends EventEmitter<ClineEvents> {
 				await this.say("api_req_retried")
 
 				// Delegate generator output from the recursive call.
-				yield* this.attemptApiRequest(previousApiReqIndex)
+				yield * this.attemptApiRequest(previousApiReqIndex)
 				return
 			}
 		}
@@ -1667,7 +1667,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		// it's saying "yield all remaining values from this iterator". This
 		// effectively passes along all subsequent chunks from the original
 		// stream.
-		yield* iterator
+		yield * iterator
 	}
 
 	// Checkpoints

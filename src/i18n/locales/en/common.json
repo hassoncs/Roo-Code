@@ -99,7 +99,7 @@
 		},
 		"autoApprovedCostLimitReached": {
 			"title": "Auto-Approved Cost Limit Reached",
-			"description": "Roo has reached the auto-approved cost limit of ${{count}}. Would you like to reset the cost limit and proceed with the task?",
+			"description": "Roo has reached the auto-approved cost limit of ${{cost}}. Would you like to reset the cost limit and proceed with the task?",
 			"button": "Reset and Continue"
 		}
 	}
