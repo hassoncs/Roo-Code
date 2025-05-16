@@ -368,7 +368,18 @@ export class Task extends EventEmitter<ClineEvents> {
 		// Increment the counter for each new API request
 		this.consecutiveAutoApprovedRequestsCount++
 
+		// Debug logging for auto-approval limits
+		console.log(
+			`[Auto-Approval Debug] Request count: ${this.consecutiveAutoApprovedRequestsCount}/${maxRequests === Infinity ? "Unlimited" : maxRequests}`,
+		)
+		console.log(
+			`[Auto-Approval Debug] Cost total: $${this.consecutiveAutoApprovedCostTotal.toFixed(4)}/${maxCostLimit === Infinity ? "Unlimited" : "$" + maxCostLimit.toFixed(2)}`,
+		)
+
 		if (this.consecutiveAutoApprovedRequestsCount > maxRequests) {
+			console.log(
+				`[Auto-Approval Debug] Request limit exceeded! (${this.consecutiveAutoApprovedRequestsCount} > ${maxRequests})`,
+			)
 			const { response } = await this.ask(
 				"auto_approval_max_req_reached",
 				JSON.stringify({
@@ -379,18 +390,21 @@ export class Task extends EventEmitter<ClineEvents> {
 			)
 			// If we get past the promise, it means the user approved and did not start a new task
 			if (response === "yesButtonClicked") {
+				console.log(`[Auto-Approval Debug] User approved reset of request count`)
 				this.consecutiveAutoApprovedRequestsCount = 0
 			}
 		}
 
-		console.log(`👹👹👹👹 ${this.consecutiveAutoApprovedCostTotal} > ${maxCostLimit}`)
 		if (this.consecutiveAutoApprovedCostTotal > maxCostLimit) {
+			console.log(
+				`[Auto-Approval Debug] Cost limit exceeded! ($${this.consecutiveAutoApprovedCostTotal.toFixed(4)} > $${maxCostLimit.toFixed(2)})`,
+			)
 			const { response } = await this.ask(
 				"auto_approval_max_cost_reached",
 				JSON.stringify({
 					title: t("common:ask.autoApprovedCostLimitReached.title"),
 					description: t("common:ask.autoApprovedCostLimitReached.description", {
-						cost: this.consecutiveAutoApprovedCostTotal.toFixed(2),
+						cost: maxCostLimit.toFixed(2),
 					}),
 					button: t("common:ask.autoApprovedCostLimitReached.button"),
 				}),
@@ -398,6 +412,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 			// If we get past the promise, it means the user approved and did not start a new task
 			if (response === "yesButtonClicked") {
+				console.log(`[Auto-Approval Debug] User approved reset of cost total`)
 				this.consecutiveAutoApprovedCostTotal = 0
 			}
 		}
@@ -1178,11 +1193,6 @@ export class Task extends EventEmitter<ClineEvents> {
 				const updatedMessage = JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}")
 				if (updatedMessage.cost) {
 					this.consecutiveAutoApprovedCostTotal += updatedMessage.cost
-					console.log("🚀 ~ Task ~ abortStream ~ updatedMessage.cost:", updatedMessage.cost)
-					console.log(
-						"🚀 ~ Task ~ abortStream ~ this.consecutiveAutoApprovedCostTotal:",
-						this.consecutiveAutoApprovedCostTotal,
-					)
 				}
 
 				await this.saveClineMessages()

@@ -40,7 +40,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setShowAnnouncement: (value: boolean) => void
 	setAllowedCommands: (value: string[]) => void
 	setAllowedMaxRequests: (value: number | undefined) => void
-	allowedMaxCostLimit?: number | undefined
 	setAllowedMaxCostLimit: (value: number | undefined) => void
 	setSoundEnabled: (value: boolean) => void
 	setSoundVolume: (value: number) => void
