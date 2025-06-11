@@ -5,7 +5,7 @@ import { ExtensionMessage } from "@roo/ExtensionMessage"
 
 import { vscode } from "@src/utils/vscode"
 
-const getRouterModels = async () =>
+const getRouterModels = async (params?: Record<string, unknown>) =>
 	new Promise<RouterModels>((resolve, reject) => {
 		const cleanup = () => {
 			window.removeEventListener("message", handler)
@@ -32,7 +32,25 @@ const getRouterModels = async () =>
 		}
 
 		window.addEventListener("message", handler)
-		vscode.postMessage({ type: "requestRouterModels" })
+		vscode.postMessage({ type: "requestRouterModels", values: params })
 	})
 
-export const useRouterModels = () => useQuery({ queryKey: ["routerModels"], queryFn: getRouterModels })
+// Cache version - increment when filtering logic changes to invalidate cache
+const CACHE_VERSION = "v5"
+
+// Global router models for all providers (OpenRouter, Requesty, etc.)
+export const useRouterModels = () => {
+	return useQuery({
+		queryKey: ["routerModels", CACHE_VERSION],
+		queryFn: () => getRouterModels(),
+	})
+}
+
+// Bedrock-specific region-aware models
+export const useBedrockModels = (region: string) => {
+	return useQuery({
+		queryKey: ["bedrockModels", region, CACHE_VERSION],
+		queryFn: () => getRouterModels({ awsRegion: region }),
+		enabled: !!region,
+	})
+}

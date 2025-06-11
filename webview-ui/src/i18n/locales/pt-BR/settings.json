@@ -140,6 +140,7 @@
 		"searchPlaceholder": "Pesquisar perfis",
 		"noMatchFound": "Nenhum perfil correspondente encontrado",
 		"vscodeLmDescription": "A API do Modelo de Linguagem do VS Code permite executar modelos fornecidos por outras extensões do VS Code (incluindo, mas não se limitando, ao GitHub Copilot). A maneira mais fácil de começar é instalar as extensões Copilot e Copilot Chat no VS Code Marketplace.",
+		"loadingModels": "Carregando modelos...",
 		"awsCustomArnUse": "Insira um ARN Amazon Bedrock válido para o modelo que deseja usar. Exemplos de formato:",
 		"awsCustomArnDesc": "Certifique-se de que a região no ARN corresponde à região AWS selecionada acima.",
 		"openRouterApiKey": "Chave de API OpenRouter",
@@ -201,6 +202,7 @@
 			"vpcEndpointUrlPlaceholder": "Digite a URL do endpoint VPC (opcional)",
 			"examples": "Exemplos:"
 		},
+		"noModelsFound": "Nenhum modelo encontrado em",
 		"enablePromptCaching": "Ativar cache de prompts",
 		"enablePromptCachingTitle": "Ativar cache de prompts para melhorar o desempenho e reduzir custos para modelos suportados.",
 		"cacheUsageNote": "Nota: Se você não vir o uso do cache, tente selecionar um modelo diferente e depois selecionar novamente o modelo desejado.",

@@ -140,6 +140,7 @@
 		"searchPlaceholder": "プロファイルを検索",
 		"noMatchFound": "一致するプロファイルが見つかりません",
 		"vscodeLmDescription": "VS Code言語モデルAPIを使用すると、他のVS Code拡張機能（GitHub Copilotなど）が提供するモデルを実行できます。最も簡単な方法は、VS Code MarketplaceからCopilotおよびCopilot Chat拡張機能をインストールすることです。",
+		"loadingModels": "モデルを読み込んでいます...",
 		"awsCustomArnUse": "使用したいモデルの有効なAmazon Bedrock ARNを入力してください。形式の例:",
 		"awsCustomArnDesc": "ARN内のリージョンが上で選択したAWSリージョンと一致していることを確認してください。",
 		"openRouterApiKey": "OpenRouter APIキー",
@@ -201,6 +202,7 @@
 			"vpcEndpointUrlPlaceholder": "VPCエンドポイントURLを入力（任意）",
 			"examples": "例："
 		},
+		"noModelsFound": "モデルが見つかりません",
 		"enablePromptCaching": "プロンプトキャッシュを有効化",
 		"enablePromptCachingTitle": "サポートされているモデルのパフォーマンスを向上させ、コストを削減するためにプロンプトキャッシュを有効化します。",
 		"cacheUsageNote": "注意：キャッシュの使用が表示されない場合は、別のモデルを選択してから希望のモデルを再度選択してみてください。",

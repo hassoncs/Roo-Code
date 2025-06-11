@@ -140,6 +140,9 @@
 		"searchPlaceholder": "Search profiles",
 		"noMatchFound": "No matching profiles found",
 		"vscodeLmDescription": " The VS Code Language Model API allows you to run models provided by other VS Code extensions (including but not limited to GitHub Copilot). The easiest way to get started is to install the Copilot and Copilot Chat extensions from the VS Code Marketplace.",
+		"useCustomArn": "Use Custom ARN",
+		"loadingModels": "Loading models...",
+		"noModelsAvailable": "No models available",
 		"awsCustomArnUse": "Enter a valid Amazon Bedrock ARN for the model you want to use. Format examples:",
 		"awsCustomArnDesc": "Make sure the region in the ARN matches your selected AWS Region above.",
 		"openRouterApiKey": "OpenRouter API Key",
@@ -201,6 +204,7 @@
 			"vpcEndpointUrlPlaceholder": "Enter VPC Endpoint URL (optional)",
 			"examples": "Examples:"
 		},
+		"noModelsFound": "No models found in ",
 		"enablePromptCaching": "Enable prompt caching",
 		"enablePromptCachingTitle": "Enable prompt caching to improve performance and reduce costs for supported models.",
 		"cacheUsageNote": "Note: If you don't see cache usage, try selecting a different model and then selecting your desired model again.",
@@ -567,7 +571,11 @@
 		"modelAvailability": "The model ID ({{modelId}}) you provided is not available. Please choose a different model.",
 		"providerNotAllowed": "Provider '{{provider}}' is not allowed by your organization",
 		"modelNotAllowed": "Model '{{model}}' is not allowed for provider '{{provider}}' by your organization",
-		"profileInvalid": "This profile contains a provider or model that is not allowed by your organization"
+		"profileInvalid": "This profile contains a provider or model that is not allowed by your organization",
+		"validateConnection": "Validate Connection",
+		"validating": "Validating...",
+		"connectionSuccessful": "Connection successful",
+		"connectionFailed": "Connection failed"
 	},
 	"placeholders": {
 		"apiKey": "Enter API Key...",

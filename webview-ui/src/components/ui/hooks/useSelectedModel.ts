@@ -4,8 +4,7 @@ import {
 	type ModelInfo,
 	anthropicDefaultModelId,
 	anthropicModels,
-	bedrockDefaultModelId,
-	bedrockModels,
+	BEDROCK_DEFAULT_MODEL_ID,
 	deepSeekDefaultModelId,
 	deepSeekModels,
 	geminiDefaultModelId,
@@ -137,8 +136,7 @@ function getSelectedModel({
 			return info ? { id, info } : { id: chutesDefaultModelId, info: chutesModels[chutesDefaultModelId] }
 		}
 		case "bedrock": {
-			const id = apiConfiguration.apiModelId ?? bedrockDefaultModelId
-			const info = bedrockModels[id as keyof typeof bedrockModels]
+			const id = apiConfiguration.apiModelId ?? BEDROCK_DEFAULT_MODEL_ID
 
 			// Special case for custom ARN.
 			if (id === "custom-arn") {
@@ -148,7 +146,19 @@ function getSelectedModel({
 				}
 			}
 
-			return info ? { id, info } : { id: bedrockDefaultModelId, info: bedrockModels[bedrockDefaultModelId] }
+			// For bedrock, we use dynamic model discovery, so provide fallback info
+			// The actual model info will be fetched dynamically by the provider
+			return {
+				id,
+				info: {
+					maxTokens: 8192,
+					contextWindow: 200_000,
+					supportsPromptCache: true,
+					supportsImages: true,
+					inputPrice: 0,
+					outputPrice: 0,
+				},
+			}
 		}
 		case "vertex": {
 			const id = apiConfiguration.apiModelId ?? vertexDefaultModelId

@@ -16,7 +16,7 @@ import {
 import { vscode } from "@src/utils/vscode"
 import { validateApiConfiguration } from "@src/utils/validate"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
+import { useRouterModels, useBedrockModels } from "@src/components/ui/hooks/useRouterModels"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { filterProviders, filterModels } from "./utils/organizationFilters"
@@ -125,7 +125,12 @@ const ApiOptions = ({
 		info: selectedModelInfo,
 	} = useSelectedModel(apiConfiguration)
 
+	// Global router models for all providers (Bedrock handles its own region-aware caching)
 	const { data: routerModels, refetch: refetchRouterModels } = useRouterModels()
+
+	// Get region-specific Bedrock models for validation
+	const currentRegion = apiConfiguration?.awsRegion || "us-west-2"
+	const { data: bedrockRouterModels } = useBedrockModels(currentRegion)
 
 	// Update `apiModelId` whenever `selectedModelId` changes.
 	useEffect(() => {
@@ -159,6 +164,13 @@ const ApiOptions = ({
 				vscode.postMessage({ type: "requestVsCodeLmModels" })
 			} else if (selectedProvider === "litellm") {
 				vscode.postMessage({ type: "requestRouterModels" })
+			} else if (selectedProvider === "bedrock") {
+				vscode.postMessage({
+					type: "requestRouterModels",
+					values: {
+						awsRegion: apiConfiguration?.awsRegion,
+					}
+				})
 			}
 		},
 		250,
@@ -171,15 +183,22 @@ const ApiOptions = ({
 			apiConfiguration?.lmStudioBaseUrl,
 			apiConfiguration?.litellmBaseUrl,
 			apiConfiguration?.litellmApiKey,
+			apiConfiguration?.awsRegion,
 			customHeaders,
 		],
 	)
 
 	useEffect(() => {
-		const apiValidationResult = validateApiConfiguration(apiConfiguration, routerModels, organizationAllowList)
+		// For Bedrock, use region-specific models for validation
+		const validationRouterModels = routerModels ? {
+			...routerModels,
+			...(bedrockRouterModels && { bedrock: bedrockRouterModels.bedrock })
+		} : routerModels
+
+		const apiValidationResult = validateApiConfiguration(apiConfiguration, validationRouterModels, organizationAllowList)
 
 		setErrorMessage(apiValidationResult)
-	}, [apiConfiguration, routerModels, organizationAllowList, setErrorMessage])
+	}, [apiConfiguration, routerModels, bedrockRouterModels, organizationAllowList, setErrorMessage])
 
 	const selectedProviderModels = useMemo(() => {
 		const models = MODELS_BY_PROVIDER[selectedProvider]
@@ -189,9 +208,9 @@ const ApiOptions = ({
 
 		return filteredModels
 			? Object.keys(filteredModels).map((modelId) => ({
-					value: modelId,
-					label: modelId,
-				}))
+				value: modelId,
+				label: modelId,
+			}))
 			: []
 	}, [selectedProvider, organizationAllowList])
 

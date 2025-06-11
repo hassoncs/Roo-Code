@@ -6,8 +6,10 @@ import { type ProviderSettings, type ModelInfo, BEDROCK_REGIONS } from "@roo-cod
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui"
+import { useBedrockModels } from "@src/components/ui/hooks/useRouterModels"
 
 import { inputEventTransform, noTransform } from "../transforms"
+import { BedrockCustomArn } from "./BedrockCustomArn"
 
 type BedrockProps = {
 	apiConfiguration: ProviderSettings
@@ -18,11 +20,21 @@ type BedrockProps = {
 export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedModelInfo }: BedrockProps) => {
 	const { t } = useAppTranslation()
 	const [awsEndpointSelected, setAwsEndpointSelected] = useState(!!apiConfiguration?.awsBedrockEndpointEnabled)
+	const [useCustomArn, setUseCustomArn] = useState(!!apiConfiguration?.awsCustomArn)
+
+	const currentRegion = apiConfiguration?.awsRegion || "us-west-2"
+	const { data: bedrockRouterModels, isLoading: isLoadingModels, refetch: refetchModels } = useBedrockModels(currentRegion)
+	const bedrockModels = bedrockRouterModels?.bedrock || {}
 
 	// Update the endpoint enabled state when the configuration changes
 	useEffect(() => {
 		setAwsEndpointSelected(!!apiConfiguration?.awsBedrockEndpointEnabled)
 	}, [apiConfiguration?.awsBedrockEndpointEnabled])
+
+	// Update custom ARN checkbox when awsCustomArn changes
+	useEffect(() => {
+		setUseCustomArn(!!apiConfiguration?.awsCustomArn)
+	}, [apiConfiguration?.awsCustomArn])
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -33,6 +45,37 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 				setApiConfigurationField(field, transform(event as E))
 			},
 		[setApiConfigurationField],
+	)
+
+	const handleModelChange = useCallback(
+		(modelId: string) => {
+			setApiConfigurationField("apiModelId", modelId)
+		},
+		[setApiConfigurationField],
+	)
+
+	const handleCustomArnToggle = useCallback(
+		(checked: boolean) => {
+			setUseCustomArn(checked)
+			if (checked) {
+				// Clear model selection when switching to custom ARN
+				setApiConfigurationField("apiModelId", "")
+			} else {
+				// Clear custom ARN when switching to model selection
+				setApiConfigurationField("awsCustomArn", "")
+			}
+		},
+		[setApiConfigurationField],
+	)
+
+	const handleRegionChange = useCallback(
+		(region: string) => {
+			setApiConfigurationField("awsRegion", region)
+			// Immediately trigger a fresh fetch with the new region
+			// React Query will automatically use the new cache key with the new region
+			setTimeout(() => refetchModels(), 300)
+		},
+		[setApiConfigurationField, refetchModels],
 	)
 
 	return (
@@ -49,6 +92,8 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 			<div className="text-sm text-vscode-descriptionForeground -mt-3">
 				{t("settings:providers.apiKeyStorageNotice")}
 			</div>
+
+
 			{apiConfiguration?.awsUseProfile ? (
 				<VSCodeTextField
 					value={apiConfiguration?.awsProfile || ""}
@@ -85,28 +130,82 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 					</VSCodeTextField>
 				</>
 			)}
-			<div>
-				<label className="block font-medium mb-1">{t("settings:providers.awsRegion")}</label>
-				<Select
-					value={apiConfiguration?.awsRegion || ""}
-					onValueChange={(value) => setApiConfigurationField("awsRegion", value)}>
-					<SelectTrigger className="w-full">
-						<SelectValue placeholder={t("settings:common.select")} />
-					</SelectTrigger>
-					<SelectContent>
-						{BEDROCK_REGIONS.map(({ value, label }) => (
-							<SelectItem key={value} value={value}>
-								{label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
+			{!useCustomArn && (
+				<div>
+					<label className="block font-medium mb-1">{t("settings:providers.awsRegion")}</label>
+					<Select
+						value={apiConfiguration?.awsRegion || ""}
+						onValueChange={handleRegionChange}>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder={t("settings:common.select")} />
+						</SelectTrigger>
+						<SelectContent>
+							{BEDROCK_REGIONS.map(({ value, label }) => (
+								<SelectItem key={value} value={value}>
+									{label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+			)}
+			{!useCustomArn && (
+				<>
+					{isLoadingModels && apiConfiguration?.awsRegion && (
+						<div className="text-sm text-vscode-descriptionForeground">
+							{t("settings:providers.loadingModels")}
+						</div>
+					)}
+					<div>
+						<label className="block font-medium mb-1">{t("settings:modelPicker.label")}</label>
+						<Select
+							value={apiConfiguration?.apiModelId || ""}
+							onValueChange={handleModelChange}>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder={t("settings:common.select")} />
+							</SelectTrigger>
+							<SelectContent>
+								{bedrockModels && Object.keys(bedrockModels).length > 0
+									? Object.keys(bedrockModels)
+										.sort()
+										.map((modelId) => (
+											<SelectItem key={modelId} value={modelId}>
+												{modelId}
+											</SelectItem>
+										))
+									: !isLoadingModels && (
+										<SelectItem key="no-models" value="__no_models__" disabled>
+											{t("settings:providers.noModelsAvailable")}
+										</SelectItem>
+									)}
+							</SelectContent>
+						</Select>
+					</div>
+					{apiConfiguration?.awsRegion && Object.keys(bedrockModels).length === 0 && !isLoadingModels && (
+						<div className="text-sm text-vscode-descriptionForeground">
+							{t("settings:providers.noModelsFound")} {apiConfiguration.awsRegion}
+						</div>
+					)}
+				</>
+			)}
 			<Checkbox
-				checked={apiConfiguration?.awsUseCrossRegionInference || false}
-				onChange={handleInputChange("awsUseCrossRegionInference", noTransform)}>
-				{t("settings:providers.awsCrossRegion")}
+				checked={useCustomArn}
+				onChange={handleCustomArnToggle}>
+				{t("settings:providers.useCustomArn")}
 			</Checkbox>
+			{useCustomArn && (
+				<BedrockCustomArn
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+				/>
+			)}
+			{!useCustomArn && (
+				<Checkbox
+					checked={apiConfiguration?.awsUseCrossRegionInference || false}
+					onChange={handleInputChange("awsUseCrossRegionInference", noTransform)}>
+					{t("settings:providers.awsCrossRegion")}
+				</Checkbox>
+			)}
 			{selectedModelInfo?.supportsPromptCache && (
 				<Checkbox
 					checked={apiConfiguration?.awsUsePromptCache || false}

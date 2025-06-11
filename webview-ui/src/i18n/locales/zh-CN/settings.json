@@ -140,6 +140,7 @@
 		"searchPlaceholder": "搜索配置文件",
 		"noMatchFound": "未找到匹配的配置文件",
 		"vscodeLmDescription": "VS Code 语言模型 API 允许您运行由其他 VS Code 扩展（包括但不限于 GitHub Copilot）提供的模型。最简单的方法是从 VS Code 市场安装 Copilot 和 Copilot Chat 扩展。",
+		"loadingModels": "正在加载模型...",
 		"awsCustomArnUse": "请输入有效的 Amazon Bedrock ARN（Amazon资源名称），格式示例：",
 		"awsCustomArnDesc": "请确保ARN中的区域与上方选择的AWS区域一致。",
 		"openRouterApiKey": "OpenRouter API 密钥",
@@ -201,6 +202,7 @@
 			"vpcEndpointUrlPlaceholder": "输入 VPC 端点 URL（可选）",
 			"examples": "示例："
 		},
+		"noModelsFound": "未找到模型",
 		"enablePromptCaching": "启用提示缓存",
 		"enablePromptCachingTitle": "开启提示缓存可提升性能并节省成本",
 		"cacheUsageNote": "提示：若未显示缓存使用情况，请切换模型后重新选择",

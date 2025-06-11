@@ -2,11 +2,10 @@ import type { ModelInfo } from "../model.js"
 
 // https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html
 
-export type BedrockModelId = keyof typeof bedrockModels
+export type BedrockModelId = string
 
-export const bedrockDefaultModelId: BedrockModelId = "anthropic.claude-sonnet-4-20250514-v1:0"
-
-export const bedrockDefaultPromptRouterModelId: BedrockModelId = "anthropic.claude-3-sonnet-20240229-v1:0"
+export const BEDROCK_DEFAULT_MODEL_ID = "anthropic.claude-sonnet-4-20250514-v1:0"
+export const BEDROCK_DEFAULT_ROUTER_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
 
 // March, 12 2025 - updated prices to match US-West-2 list price shown at
 // https://aws.amazon.com/bedrock/pricing, including older models that are part

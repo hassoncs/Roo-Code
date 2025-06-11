@@ -41,6 +41,8 @@ export interface ExtensionMessage {
 		| "commitSearchResults"
 		| "listApiConfig"
 		| "routerModels"
+		| "bedrockModels"
+		| "bedrockModelsError"
 		| "openAiModels"
 		| "ollamaModels"
 		| "lmStudioModels"
@@ -73,6 +75,7 @@ export interface ExtensionMessage {
 		| "indexingStatusUpdate"
 		| "indexCleared"
 		| "codebaseIndexConfig"
+		| "providerValidationResult"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -94,6 +97,7 @@ export interface ExtensionMessage {
 	}>
 	clineMessage?: ClineMessage
 	routerModels?: RouterModels
+	bedrockModels?: string[] | { error: string }
 	openAiModels?: string[]
 	ollamaModels?: string[]
 	lmStudioModels?: string[]

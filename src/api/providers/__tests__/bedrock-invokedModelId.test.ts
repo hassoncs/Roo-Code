@@ -111,8 +111,8 @@ describe("AwsBedrockHandler with invokedModelId", () => {
 
 		// Verify that getModel returns the updated model info
 		const initialModel = handler.getModel()
-		//the default prompt router model has an input price of 3. After the stream is handled it should be updated to 8
-		expect(initialModel.info.inputPrice).toBe(3)
+		//With dynamic model discovery, pricing defaults to 0 since AWS API doesn't provide pricing
+		expect(initialModel.info.inputPrice).toBe(0)
 
 		// Create a spy on the getModel
 		const getModelByIdSpy = jest.spyOn(handler, "getModelById")
@@ -171,7 +171,8 @@ describe("AwsBedrockHandler with invokedModelId", () => {
 		// Verify that getModel returns the updated model info
 		const costModel = handler.getModel()
 		//expect(costModel.id).toBe("anthropic.claude-3-5-sonnet-20240620-v1:0")
-		expect(costModel.info.inputPrice).toBe(8)
+		// With dynamic model discovery, pricing defaults to 0 since AWS API doesn't provide pricing
+		expect(costModel.info.inputPrice).toBe(0)
 
 		// Verify that a usage event was emitted after updating the costModelConfig
 		const usageEvents = events.filter((event) => event.type === "usage")

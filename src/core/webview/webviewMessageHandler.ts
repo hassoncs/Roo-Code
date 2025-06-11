@@ -39,6 +39,7 @@ import { getModels, flushModels } from "../../api/providers/fetchers/modelCache"
 import { GetModelsOptions } from "../../shared/api"
 import { generateSystemPrompt } from "./generateSystemPrompt"
 import { getCommand } from "../../utils/commands"
+import { buildApiHandler, SingleCompletionHandler } from "../../api"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
@@ -324,6 +325,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				glama: {},
 				unbound: {},
 				litellm: {},
+				bedrock: {},
 			}
 
 			const safeGetModels = async (options: GetModelsOptions): Promise<ModelRecord> => {
@@ -343,6 +345,22 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				{ key: "requesty", options: { provider: "requesty", apiKey: apiConfiguration.requestyApiKey } },
 				{ key: "glama", options: { provider: "glama" } },
 				{ key: "unbound", options: { provider: "unbound", apiKey: apiConfiguration.unboundApiKey } },
+				{
+					key: "bedrock",
+					options: {
+						provider: "bedrock",
+						apiConfiguration: {
+							awsAccessKey: apiConfiguration.awsAccessKey,
+							awsSecretKey: apiConfiguration.awsSecretKey,
+							awsSessionToken: apiConfiguration.awsSessionToken,
+							awsProfile: apiConfiguration.awsProfile,
+							awsUseProfile: apiConfiguration.awsUseProfile,
+							awsBedrockEndpoint: apiConfiguration.awsBedrockEndpoint,
+							awsBedrockEndpointEnabled: apiConfiguration.awsBedrockEndpointEnabled,
+							awsRegion: message?.values?.awsRegion || apiConfiguration.awsRegion || "us-west-2",
+						},
+					},
+				},
 			]
 
 			const litellmApiKey = apiConfiguration.litellmApiKey || message?.values?.litellmApiKey

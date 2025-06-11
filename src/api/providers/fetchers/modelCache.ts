@@ -13,6 +13,7 @@ import { getRequestyModels } from "./requesty"
 import { getGlamaModels } from "./glama"
 import { getUnboundModels } from "./unbound"
 import { getLiteLLMModels } from "./litellm"
+import { requestBedrockModels as getBedrockModels } from "./bedrock"
 import { GetModelsOptions } from "../../../shared/api"
 const memoryCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 * 60 })
 
@@ -43,7 +44,11 @@ async function readModels(router: RouterName): Promise<ModelRecord | undefined> 
  */
 export const getModels = async (options: GetModelsOptions): Promise<ModelRecord> => {
 	const { provider } = options
-	let models = memoryCache.get<ModelRecord>(provider)
+
+	// Create region-specific cache key for Bedrock to prevent mixing models from different regions
+	const cacheKey = provider === "bedrock" ? `${provider}-${options.apiConfiguration.awsRegion}` : provider
+
+	let models = memoryCache.get<ModelRecord>(cacheKey)
 	if (models) {
 		return models
 	}
@@ -68,6 +73,10 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 				// Type safety ensures apiKey and baseUrl are always provided for litellm
 				models = await getLiteLLMModels(options.apiKey, options.baseUrl)
 				break
+			case "bedrock":
+				// Type safety ensures region and apiConfiguration are always provided for bedrock
+				models = await getBedrockModels(options.apiConfiguration.awsRegion, options.apiConfiguration)
+				break
 			default: {
 				// Ensures router is exhaustively checked if RouterName is a strict union
 				const exhaustiveCheck: never = provider
@@ -75,15 +84,18 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 			}
 		}
 
-		// Cache the fetched models (even if empty, to signify a successful fetch with no models)
-		memoryCache.set(provider, models)
+		// Cache the fetched models with region-specific key for Bedrock
+		memoryCache.set(cacheKey, models)
 		await writeModels(provider, models).catch((err) =>
 			console.error(`[getModels] Error writing ${provider} models to file cache:`, err),
 		)
 
 		try {
 			models = await readModels(provider)
-			// console.log(`[getModels] read ${router} models from file cache`)
+			if (provider === "bedrock") {
+				console.log("=== BEDROCK FILE CACHE READ ===")
+				console.log("Models from file cache:", models ? Object.keys(models).slice(0, 5) : "none")
+			}
 		} catch (error) {
 			console.error(`[getModels] error reading ${provider} models from file cache`, error)
 		}

@@ -2,7 +2,6 @@ import {
 	type ProviderName,
 	type ModelInfo,
 	anthropicModels,
-	bedrockModels,
 	deepSeekModels,
 	geminiModels,
 	mistralModels,
@@ -15,7 +14,6 @@ import {
 
 export const MODELS_BY_PROVIDER: Partial<Record<ProviderName, Record<string, ModelInfo>>> = {
 	anthropic: anthropicModels,
-	bedrock: bedrockModels,
 	deepseek: deepSeekModels,
 	gemini: geminiModels,
 	mistral: mistralModels,

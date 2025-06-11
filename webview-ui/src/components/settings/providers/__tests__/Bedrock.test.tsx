@@ -1,5 +1,6 @@
 import React from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Bedrock } from "../Bedrock"
 import { ProviderSettings } from "@roo-code/types"
 
@@ -73,12 +74,40 @@ jest.mock("../../constants", () => ({
 	AWS_REGIONS: [{ value: "us-east-1", label: "US East (N. Virginia)" }],
 }))
 
+// Mock the useRouterModels hook
+jest.mock("@src/components/ui/hooks/useRouterModels", () => ({
+	useRouterModels: () => ({
+		data: {},
+		isLoading: false,
+		error: null,
+	}),
+}))
+
 describe("Bedrock Component", () => {
 	const mockSetApiConfigurationField = jest.fn()
+	let queryClient: QueryClient
 
 	beforeEach(() => {
 		jest.clearAllMocks()
+		queryClient = new QueryClient({
+			defaultOptions: {
+				queries: {
+					retry: false,
+				},
+			},
+		})
 	})
+
+	const renderComponent = (apiConfiguration: Partial<ProviderSettings>) => {
+		return render(
+			<QueryClientProvider client={queryClient}>
+				<Bedrock
+					apiConfiguration={apiConfiguration as ProviderSettings}
+					setApiConfigurationField={mockSetApiConfigurationField}
+				/>
+			</QueryClientProvider>,
+		)
+	}
 
 	it("should show text field when VPC endpoint checkbox is checked", () => {
 		// Initial render with checkbox unchecked
@@ -87,12 +116,7 @@ describe("Bedrock Component", () => {
 			awsUseProfile: true, // Use profile to avoid rendering other text fields
 		}
 
-		render(
-			<Bedrock
-				apiConfiguration={apiConfiguration as ProviderSettings}
-				setApiConfigurationField={mockSetApiConfigurationField}
-			/>,
-		)
+		renderComponent(apiConfiguration)
 
 		// Text field should not be visible initially
 		expect(screen.queryByTestId("vpc-endpoint-input")).not.toBeInTheDocument()
@@ -112,12 +136,7 @@ describe("Bedrock Component", () => {
 			awsUseProfile: true, // Use profile to avoid rendering other text fields
 		}
 
-		render(
-			<Bedrock
-				apiConfiguration={apiConfiguration as ProviderSettings}
-				setApiConfigurationField={mockSetApiConfigurationField}
-			/>,
-		)
+		renderComponent(apiConfiguration)
 
 		// Text field should be visible initially
 		expect(screen.getByTestId("vpc-endpoint-input")).toBeInTheDocument()
@@ -141,12 +160,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Find the input field
 			const inputField = screen.getByTestId("vpc-endpoint-input")
@@ -169,12 +183,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Find the input field
 			const inputField = screen.getByTestId("vpc-endpoint-input")
@@ -196,12 +205,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Initial state: checkbox checked, URL visible
 			expect(screen.getByTestId("vpc-endpoint-input")).toBeInTheDocument()
@@ -233,12 +237,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Verify the long URL is displayed correctly
 			expect(screen.getByTestId("vpc-endpoint-input")).toHaveValue(veryLongUrl)
@@ -262,12 +261,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Check that the VPC endpoint input is visible
 			expect(screen.getByTestId("vpc-endpoint-input")).toBeInTheDocument()
@@ -287,12 +281,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Initially the examples should be visible
 			expect(screen.getByText("settings:providers.awsBedrockVpc.examples")).toBeInTheDocument()
@@ -316,12 +305,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfiguration as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfiguration)
 
 			// Find the input field
 			const inputField = screen.getByTestId("vpc-endpoint-input")
@@ -345,12 +329,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			const { unmount } = render(
-				<Bedrock
-					apiConfiguration={apiConfigurationEnabled as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			const { unmount } = renderComponent(apiConfigurationEnabled)
 
 			// Verify checkbox is checked and endpoint is visible
 			expect(screen.getByTestId("checkbox-input-settings:providers.awsbedrockvpc.usecustomvpcendpoint")).toBeChecked()
@@ -366,12 +345,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			render(
-				<Bedrock
-					apiConfiguration={apiConfigurationDisabled as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			renderComponent(apiConfigurationDisabled)
 
 			// Verify checkbox is unchecked and endpoint is not visible
 			expect(screen.getByTestId("checkbox-input-settings:providers.awsbedrockvpc.usecustomvpcendpoint")).not.toBeChecked()
@@ -386,12 +360,7 @@ describe("Bedrock Component", () => {
 				awsUseProfile: true,
 			}
 
-			const { rerender } = render(
-				<Bedrock
-					apiConfiguration={apiConfigurationInitial as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
-			)
+			const { rerender } = renderComponent(apiConfigurationInitial)
 
 			// Verify initial state
 			expect(screen.getByTestId("checkbox-input-settings:providers.awsbedrockvpc.usecustomvpcendpoint")).not.toBeChecked()
@@ -405,10 +374,12 @@ describe("Bedrock Component", () => {
 			}
 
 			rerender(
-				<Bedrock
-					apiConfiguration={apiConfigurationUpdated as ProviderSettings}
-					setApiConfigurationField={mockSetApiConfigurationField}
-				/>,
+				<QueryClientProvider client={queryClient}>
+					<Bedrock
+						apiConfiguration={apiConfigurationUpdated as ProviderSettings}
+						setApiConfigurationField={mockSetApiConfigurationField}
+					/>
+				</QueryClientProvider>,
 			)
 
 			// Verify updated state

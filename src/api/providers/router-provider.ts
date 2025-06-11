@@ -2,7 +2,7 @@ import OpenAI from "openai"
 
 import type { ModelInfo } from "@roo-code/types"
 
-import { ApiHandlerOptions, RouterName, ModelRecord } from "../../shared/api"
+import { ApiHandlerOptions, RouterName, ModelRecord, GetModelsOptions } from "../../shared/api"
 
 import { BaseProvider } from "./base-provider"
 import { getModels } from "./fetchers/modelCache"
@@ -47,7 +47,48 @@ export abstract class RouterProvider extends BaseProvider {
 	}
 
 	public async fetchModel() {
-		this.models = await getModels({ provider: this.name, apiKey: this.client.apiKey, baseUrl: this.client.baseURL })
+		let modelsOptions: GetModelsOptions
+
+		switch (this.name) {
+			case "openrouter":
+				modelsOptions = { provider: "openrouter" }
+				break
+			case "glama":
+				modelsOptions = { provider: "glama" }
+				break
+			case "requesty":
+				modelsOptions = { provider: "requesty", apiKey: this.client.apiKey }
+				break
+			case "unbound":
+				modelsOptions = { provider: "unbound", apiKey: this.client.apiKey }
+				break
+			case "litellm":
+				modelsOptions = {
+					provider: "litellm",
+					apiKey: this.client.apiKey,
+					baseUrl: this.client.baseURL,
+				}
+				break
+			case "bedrock":
+				modelsOptions = {
+					provider: "bedrock",
+					apiConfiguration: {
+						awsAccessKey: this.options.awsAccessKey,
+						awsSecretKey: this.options.awsSecretKey,
+						awsSessionToken: this.options.awsSessionToken,
+						awsProfile: this.options.awsProfile,
+						awsUseProfile: this.options.awsUseProfile,
+						awsBedrockEndpoint: this.options.awsBedrockEndpoint,
+						awsBedrockEndpointEnabled: this.options.awsBedrockEndpointEnabled,
+						awsRegion: this.options.awsRegion || "us-west-2",
+					},
+				}
+				break
+			default:
+				throw new Error(`Unknown router provider: ${this.name}`)
+		}
+
+		this.models = await getModels(modelsOptions)
 		return this.getModel()
 	}
 

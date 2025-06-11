@@ -6,7 +6,7 @@ export type ApiHandlerOptions = Omit<ProviderSettings, "apiProvider">
 
 // RouterName
 
-const routerNames = ["openrouter", "requesty", "glama", "unbound", "litellm"] as const
+const routerNames = ["openrouter", "requesty", "glama", "unbound", "litellm", "bedrock"] as const
 
 export type RouterName = (typeof routerNames)[number]
 
@@ -76,9 +76,21 @@ export const getModelMaxOutputTokens = ({
 
 // GetModelsOptions
 
+export type BedrockGetModelsConfig = {
+	awsAccessKey?: string
+	awsSecretKey?: string
+	awsSessionToken?: string
+	awsProfile?: string
+	awsUseProfile?: boolean
+	awsBedrockEndpoint?: string
+	awsBedrockEndpointEnabled?: boolean
+	awsRegion: string
+}
+
 export type GetModelsOptions =
 	| { provider: "openrouter" }
 	| { provider: "glama" }
 	| { provider: "requesty"; apiKey?: string }
 	| { provider: "unbound"; apiKey?: string }
 	| { provider: "litellm"; apiKey: string; baseUrl: string }
+	| { provider: "bedrock"; apiConfiguration: BedrockGetModelsConfig }

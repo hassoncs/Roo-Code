@@ -7,6 +7,7 @@ import {
 	Message,
 	SystemContentBlock,
 } from "@aws-sdk/client-bedrock-runtime"
+import { BedrockClient, ListFoundationModelsCommand, type FoundationModelSummary } from "@aws-sdk/client-bedrock"
 import { fromIni } from "@aws-sdk/credential-providers"
 import { Anthropic } from "@anthropic-ai/sdk"
 
@@ -14,9 +15,6 @@ import {
 	type ModelInfo,
 	type ProviderSettings,
 	type BedrockModelId,
-	bedrockDefaultModelId,
-	bedrockModels,
-	bedrockDefaultPromptRouterModelId,
 	BEDROCK_DEFAULT_TEMPERATURE,
 	BEDROCK_MAX_TOKENS,
 	BEDROCK_DEFAULT_CONTEXT,
@@ -30,6 +28,7 @@ import { MultiPointStrategy } from "../transform/cache-strategy/multi-point-stra
 import { ModelInfo as CacheModelInfo } from "../transform/cache-strategy/types"
 import { convertToBedrockConverseMessages as sharedConverter } from "../transform/bedrock-converse-format"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
+import { inferMaxTokens } from "./fetchers/bedrock"
 
 /************************************************************************************
  *
@@ -193,63 +192,23 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 		this.client = new BedrockRuntimeClient(clientConfig)
 	}
 
-	// Helper to guess model info from custom modelId string if not in bedrockModels
-	private guessModelInfoFromId(modelId: string): Partial<ModelInfo> {
-		// Define a mapping for model ID patterns and their configurations
-		const modelConfigMap: Record<string, Partial<ModelInfo>> = {
-			"claude-4": {
-				maxTokens: 8192,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-			"claude-3-7": {
-				maxTokens: 8192,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-			"claude-3-5": {
-				maxTokens: 8192,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-			"claude-4-opus": {
-				maxTokens: 4096,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-			"claude-3-opus": {
-				maxTokens: 4096,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-			"claude-3-haiku": {
-				maxTokens: 4096,
-				contextWindow: 200_000,
-				supportsImages: true,
-				supportsPromptCache: true,
-			},
-		}
-
-		// Match the model ID to a configuration
-		const id = modelId.toLowerCase()
-		for (const [pattern, config] of Object.entries(modelConfigMap)) {
-			if (id.includes(pattern)) {
-				return config
+	/**
+	 * Get credentials for AWS Bedrock client - reuses the same logic as BedrockRuntimeClient
+	 */
+	private getCredentials() {
+		if (this.options.awsUseProfile && this.options.awsProfile) {
+			return fromIni({
+				profile: this.options.awsProfile,
+				ignoreCache: true,
+			})
+		} else if (this.options.awsAccessKey && this.options.awsSecretKey) {
+			return {
+				accessKeyId: this.options.awsAccessKey,
+				secretAccessKey: this.options.awsSecretKey,
+				...(this.options.awsSessionToken ? { sessionToken: this.options.awsSessionToken } : {}),
 			}
 		}
-
-		// Default fallback
-		return {
-			maxTokens: BEDROCK_MAX_TOKENS,
-			contextWindow: BEDROCK_DEFAULT_CONTEXT,
-			supportsImages: false,
-			supportsPromptCache: false,
-		}
+		return undefined // Use default AWS credential chain
 	}
 
 	override async *createMessage(
@@ -280,9 +239,12 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			conversationId,
 		)
 
+		// Get user's requested maxTokens (follows same pattern as other providers)
+		const userRequestedMaxTokens = this.options.modelMaxTokens || modelConfig.info.maxTokens
+
 		// Construct the payload
 		const inferenceConfig: BedrockInferenceConfig = {
-			maxTokens: modelConfig.info.maxTokens as number,
+			maxTokens: userRequestedMaxTokens as number,
 			temperature: this.options.modelTemperature as number,
 			topP: 0.1,
 		}
@@ -305,6 +267,9 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 				},
 				10 * 60 * 1000,
 			)
+
+			// Clamp maxTokens to AWS model limit to prevent API errors
+			inferenceConfig.maxTokens = this.clampToAwsModelLimit(inferenceConfig.maxTokens, modelConfig.id)
 
 			const command = new ConverseStreamCommand(payload)
 			const response = await this.client.send(command, {
@@ -444,11 +409,17 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 		try {
 			const modelConfig = this.getModel()
 
+			// Get user's requested maxTokens (follows same pattern as other providers)
+			// const userRequestedMaxTokens = this.options.modelMaxTokens || modelConfig.info.maxTokens
+
 			const inferenceConfig: BedrockInferenceConfig = {
 				maxTokens: modelConfig.info.maxTokens as number,
 				temperature: this.options.modelTemperature as number,
 				topP: 0.1,
 			}
+
+			// Clamp maxTokens to AWS model limit to prevent API errors
+			inferenceConfig.maxTokens = this.clampToAwsModelLimit(inferenceConfig.maxTokens, modelConfig.id)
 
 			// For completePrompt, use a unique conversation ID based on the prompt
 			const conversationId = `prompt_${prompt.substring(0, 20)}`
@@ -685,30 +656,38 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 
 	//Prompt Router responses come back in a different sequence and the model used is in the response and must be fetched by name
 	getModelById(modelId: string, modelType?: string): { id: BedrockModelId | string; info: ModelInfo } {
-		// Try to find the model in bedrockModels
-		const baseModelId = this.parseBaseModelId(modelId) as BedrockModelId
+		const baseModelId = this.parseBaseModelId(modelId)
 
-		let model
-		if (baseModelId in bedrockModels) {
-			//Do a deep copy of the model info so that later in the code the model id and maxTokens can be set.
-			// The bedrockModels array is a constant and updating the model ID from the returned invokedModelID value
-			// in a prompt router response isn't possible on the constant.
-			model = { id: baseModelId, info: JSON.parse(JSON.stringify(bedrockModels[baseModelId])) }
-		} else if (modelType && modelType.includes("router")) {
-			model = {
-				id: bedrockDefaultPromptRouterModelId,
-				info: JSON.parse(JSON.stringify(bedrockModels[bedrockDefaultPromptRouterModelId])),
-			}
-		} else {
-			// Use heuristics for model info, then allow overrides from ProviderSettings
-			const guessed = this.guessModelInfoFromId(modelId)
-			model = {
-				id: bedrockDefaultModelId,
+		// Use dynamic model info inference - NO hardcoded model lists
+		const modelInfo: ModelInfo = {
+			maxTokens: 8192, // Default, will be overridden by router model data
+			contextWindow: 200_000, // Default, will be overridden by router model data
+			supportsImages: false, // Default, will be overridden by router model data
+			supportsPromptCache: false, // Default, will be overridden by router model data
+			inputPrice: 0, // Pricing not available from AWS API
+			outputPrice: 0,
+		}
+
+		// Handle router models - use fallback model for router inference
+		if (modelType && modelType.includes("router")) {
+			// Use Claude 3 Sonnet as fallback for router models
+			const routerFallbackId = "anthropic.claude-3-sonnet-20240229-v1:0"
+			return {
+				id: routerFallbackId,
 				info: {
-					...JSON.parse(JSON.stringify(bedrockModels[bedrockDefaultModelId])),
-					...guessed,
+					maxTokens: 4096,
+					contextWindow: 200_000,
+					supportsImages: true,
+					supportsPromptCache: false,
+					inputPrice: 0,
+					outputPrice: 0,
 				},
 			}
+		}
+
+		const model = {
+			id: baseModelId,
+			info: modelInfo,
 		}
 
 		// Always allow user to override detected/guessed maxTokens and contextWindow
@@ -742,13 +721,27 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			modelConfig = this.getModelById(this.options.apiModelId as string)
 
 			if (this.options.awsUseCrossRegionInference) {
-				// Get the current region
-				const region = this.options.awsRegion || ""
-				// Use the helper method to get the appropriate prefix for this region
-				const prefix = AwsBedrockHandler.getPrefixForRegion(region)
+				// IMPORTANT: Only apply cross-region prefixes to manually entered model IDs
+				// Model IDs from AWS's ListFoundationModels API are already in the correct format
+				// and should NOT be modified with regional prefixes
 
-				// Apply the prefix if one was found, otherwise use the model ID as is
-				modelConfig.id = prefix ? `${prefix}${modelConfig.id}` : modelConfig.id
+				const modelId = modelConfig.id
+				const isFromDynamicDiscovery =
+					modelId.includes("anthropic.claude") && !modelId.startsWith("us.") && !modelId.startsWith("eu.")
+
+				if (!isFromDynamicDiscovery) {
+					// Get the current region
+					const region = this.options.awsRegion || ""
+					// Use the helper method to get the appropriate prefix for this region
+					const prefix = AwsBedrockHandler.getPrefixForRegion(region)
+
+					// Apply the prefix if one was found, otherwise use the model ID as is
+					modelConfig.id = prefix ? `${prefix}${modelConfig.id}` : modelConfig.id
+
+					console.log(`Applied cross-region prefix: ${modelId} -> ${modelConfig.id}`)
+				} else {
+					console.log(`Skipping cross-region prefix for dynamic model ID: ${modelId} (from AWS API)`)
+				}
 			}
 		}
 
@@ -790,6 +783,15 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 		}
 
 		return content
+	}
+
+	/**
+	 * Clamp requested tokens to AWS model limit to prevent API errors
+	 * Uses Math.min for clean, readable logic
+	 */
+	private clampToAwsModelLimit(requestedTokens: number, modelId: string): number {
+		const awsLimit = inferMaxTokens(modelId)
+		return awsLimit > 0 ? Math.min(requestedTokens, awsLimit) : requestedTokens
 	}
 
 	/************************************************************************************
