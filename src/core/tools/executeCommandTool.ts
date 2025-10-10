@@ -15,6 +15,7 @@ import { unescapeHtmlEntities } from "../../utils/text-normalization"
 import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../../integrations/terminal/types"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
+import { detectAndConvertCdPattern } from "../../integrations/terminal/commandUtils"
 import { Package } from "../../shared/package"
 import { t } from "../../i18n"
 
@@ -54,8 +55,18 @@ export async function executeCommandTool(
 			task.consecutiveMistakeCount = 0
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
-			const didApprove = await askApproval("command", command)
 
+			// Only detect and convert cd patterns if no custom working directory is already set
+			let effectiveCwd = customCwd
+			if (!customCwd) {
+				const { finalCommand, finalCwd, wasConverted } = detectAndConvertCdPattern(command, task.cwd)
+				if (wasConverted) {
+					command = finalCommand
+					effectiveCwd = finalCwd
+				}
+			}
+
+			const didApprove = await askApproval("command", command)
 			if (!didApprove) {
 				return
 			}
@@ -89,7 +100,7 @@ export async function executeCommandTool(
 			const options: ExecuteCommandOptions = {
 				executionId,
 				command,
-				customCwd,
+				customCwd: effectiveCwd,
 				terminalShellIntegrationDisabled,
 				terminalOutputLineLimit,
 				terminalOutputCharacterLimit,
